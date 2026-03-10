@@ -1,25 +1,28 @@
 import swaggerUi from "swagger-ui-express";
-import { Request, Response } from "express";
-
 
 const swaggerDocument = {
-   openapi: "3.0.0",
+  openapi: "3.0.0",
   info: {
     title: "Event Management System",
     version: "1.0.0",
-    description: "API documentation for Event Management System",
+    description: "API documentation",
   },
-  servers: [
-    {
-      url: "http://localhost:5000",
+  servers: [{ url: "http://localhost:5001" }],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
     },
-  ],
+  },
   paths: {
     "/auth/register": {
       post: {
-        summary: "Register a new user",
+        summary: "Register",
+        tags: ["Auth"],
         requestBody: {
-          required: true,
           content: {
             "application/json": {
               schema: {
@@ -33,21 +36,14 @@ const swaggerDocument = {
             },
           },
         },
-        responses: {
-          "201": {
-            description: "User registered successfully",
-          },
-          "400": {
-            description: "Validation error or email already exists",
-          },
-        },
+        responses: { "201": { description: "Success" } },
       },
     },
     "/auth/login": {
       post: {
-        summary: "Login user",
+        summary: "Login",
+        tags: ["Auth"],
         requestBody: {
-          required: true,
           content: {
             "application/json": {
               schema: {
@@ -60,13 +56,157 @@ const swaggerDocument = {
             },
           },
         },
+        responses: { "200": { description: "Success" } },
+      },
+    },
+    "/events": {
+      get: {
+        summary: "Get public events",
+        tags: ["Events"],
+        parameters: [
+          { name: "limit", in: "query", schema: { type: "integer" } },
+        ],
+        responses: { "200": { description: "List of events" } },
+      },
+      post: {
+        summary: "Create event",
+        tags: ["Events"],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  date: { type: "string", format: "date-time" },
+                  location: { type: "string" },
+                  capacity: { type: "integer" },
+                  isPublic: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: { "201": { description: "Created" } },
+      },
+    },
+    "/events/{id}": {
+      get: {
+        summary: "Get event details",
+        tags: ["Events"],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+          },
+        ],
         responses: {
-          "201": {
-            description: "User logout",
+          "200": { description: "Event details" },
+          "404": { description: "Event not found" },
+        },
+      },
+      patch: {
+        summary: "Update event",
+        tags: ["Events"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
           },
-          "400": {
-            description: "Validation error or email already exists",
+        ],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  date: { type: "string", format: "date-time" },
+                },
+              },
+            },
           },
+        },
+        responses: { "200": { description: "Updated" } },
+      },
+      delete: {
+        summary: "Delete event",
+        tags: ["Events"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+          },
+        ],
+        responses: { "200": { description: "Deleted successfully" } },
+      },
+    },
+    "/events/{id}/join": {
+      post: {
+        summary: "Join event",
+        tags: ["Events"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+          },
+        ],
+        responses: {
+          "200": { description: "Joined successfully" },
+          "400": { description: "Already joined or Event is full" },
+          "404": { description: "Event not found" },
+        },
+      },
+    },
+    "/events/{id}/leave": {
+      post: {
+        summary: "Leave event",
+        tags: ["Events"],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+          },
+        ],
+        responses: {
+          "200": { description: "Successfully left the event" },
+          "400": { description: "Not a participant" },
+          "404": { description: "Event not found" },
+        },
+      },
+    },
+   "/user/me/events": {
+      get: {
+        summary: "Get my events (calendar)",
+        tags: ["Profile"],
+        security: [{ bearerAuth: [] }],
+        responses: { 
+          "200": { 
+            description: "List of user's events",
+            content: {
+              "application/json": {
+                schema: { type: "array", items: { type: "object" } }
+              }
+            }
+          },
+          "401": { description: "Unauthorized" }
         },
       },
     },

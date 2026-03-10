@@ -2,23 +2,23 @@ import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
 import { errorHandler } from "./middleware/errorHandler"
-import testRoute from "./routes/testRoute"
+import authRoutes from "./routes/authRoute";
+import eventRoute from "./routes/eventRoute";
 import { swaggerUi, swaggerDocument } from "./config/swagger";
+import userRoute from "./routes/userRoute";
 
 dotenv.config()
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5001
 
 const app = express()
 
 app.use(cors())
 app.use(express.json())
 
-app.get("/", (req, res) => {
-  res.json({ message: "API is running" })
-})
-
-app.use("/api/test", testRoute)
+app.use("/auth", authRoutes);
+app.use('/events', eventRoute)
+app.use('/user', userRoute)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(errorHandler)
