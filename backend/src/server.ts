@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv"
 import { errorHandler } from "./middleware/errorHandler"
 import authRoutes from "./routes/authRoute";
@@ -15,10 +16,11 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
+app.use(cookieParser());
 
-app.use("/auth", authRoutes);
-app.use('/events', eventRoute)
-app.use('/user', userRoute)
+app.use("/api/auth", authRoutes);
+app.use('/api/events', eventRoute)
+app.use('/api/user', userRoute)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(errorHandler)

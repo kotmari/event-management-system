@@ -5,7 +5,7 @@ import { authenticate } from "../middleware/authMiddleware";
 const router = Router();
 
 router.post("/", authenticate,  createEvent);
-router.get("/",  publicEvents);
+router.get("/",authenticate,  publicEvents);
 router.get("/:id",  getEventById);
 router.patch("/:id", authenticate,  updateEvent);
 router.delete("/:id", authenticate,  deleteEvent);

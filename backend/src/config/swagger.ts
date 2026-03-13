@@ -7,7 +7,7 @@ const swaggerDocument = {
     version: "1.0.0",
     description: "API documentation",
   },
-  servers: [{ url: "http://localhost:5001" }],
+  servers: [{ url: "http://localhost:5001/api" }],
   components: {
     securitySchemes: {
       bearerAuth: {
