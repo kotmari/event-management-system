@@ -1,3 +1,29 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Geist", system-ui, sans-serif;
 
+  --color-background: #f8f3f3;
+  --color-foreground: #6b6767;
+  --color-muted: #858588;
+  --color-border: #27272a;
+  --color-card: #e9f2f9;
+  --color-accent: #1e8bf1;
+  --color-accent-hover: #1472d1;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+}
