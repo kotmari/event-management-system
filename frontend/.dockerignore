@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+.git
+.env
+.eslintrc.cjs
+vite.config.ts
+*.log
