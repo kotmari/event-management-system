@@ -125,7 +125,7 @@ export const refreshTokens = async (
       where: { userId: payload.id, revoked: false },
     });
 
-    const tokenRecord = storedTokens.find((t) =>
+    const tokenRecord = storedTokens.find((t: any) =>
       bcrypt.compare(refreshToken, t.token),
     );
 

@@ -4,5 +4,4 @@ build
 .git
 .env
 .eslintrc.cjs
-vite.config.ts
 *.log
