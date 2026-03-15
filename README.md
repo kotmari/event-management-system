@@ -1,10 +1,13 @@
 # Backend .env
 DATABASE_URL=postgresql://user:password@db:5432/events_db
+
 PORT=5001
+
 JWT_SECRET=your_super_secret_key
+
 REFRESH_TOKEN_SECRET=your_super_secret_key
 
-# Frontend
+# Frontend .env
 VITE_API_BASE_URL="http://localhost:5001/api"
 
 ## This will automatically:
