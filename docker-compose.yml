@@ -1,22 +1,16 @@
 services:
   backend:
-    build: ./backend
-    env_file: .env
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env  
     ports:
       - "5001:5001"
-    depends_on:
-      - db
-    command: sh -c "npx prisma migrate deploy && node dist/server.js"
 
   frontend:
-    build: ./frontend
-    env_file: .env 
+    build:
+      context: ./frontend
+    env_file:
+      - ./frontend/.env
     ports:
       - "5173:80"
-
-  db:
-    image: postgres:15-alpine
-    env_file: .env 
-    restart: always
-    ports:
-      - "5432:5432"

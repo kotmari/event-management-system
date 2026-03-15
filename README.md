@@ -4,7 +4,7 @@
    `git clone <your-repo-url>`
 
 2. **Setup environment variables:**
-   Create a `.env` file in the root directory by copying the example:
+   Create a `.env` in folder backend and folder frontend file in the root directory by copying the example:
    ```bash
    cp .env.example .env
 
