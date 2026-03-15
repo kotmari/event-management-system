@@ -1,20 +1,35 @@
-import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import type { IEvent } from "../types";
 
-interface CalendarCellProps {
+export interface CalendarCellProps {
   day: Date;
   isSelected?: boolean;
-  events: IEvent[]; 
+  events: IEvent[];
   className?: string;
 }
 
 export const CalendarCell = ({ day, isSelected, events, className }: CalendarCellProps) => {
+  const navigate = useNavigate();
+
+
+  const handleCellClick = () => {
+    if (events.length === 0) {
+      navigate(`/events/create?date=${format(day, "yyyy-MM-dd")}`);
+    }
+  };
+
+ 
+  const handleEventClick = (e: React.MouseEvent, eventId: number) => {
+    e.stopPropagation(); 
+    navigate(`/events/${eventId}`);
+  };
+
   return (
-    <Link
-      to={`/create?date=${format(day, "yyyy-MM-dd")}`}
+    <div
+      onClick={handleCellClick}
       className={`border p-2 h-24 relative transition-all duration-200 
-        hover:bg-blue-50 hover:border-blue-300 flex flex-col
+        ${events.length === 0 ? "cursor-pointer hover:bg-blue-50" : "cursor-default"}
         ${isSelected ? "border-accent border-2" : "border-gray-200"}
         ${className}`}
     >
@@ -24,11 +39,15 @@ export const CalendarCell = ({ day, isSelected, events, className }: CalendarCel
 
       <div className="mt-1 space-y-1">
         {events.map((ev) => (
-          <div key={ev.id} className="text-[10px] bg-indigo-100 text-accent px-1 py-0.5 rounded truncate">
+          <div
+            key={ev.id}
+            onClick={(e) => handleEventClick(e, ev.id)}
+            className="text-xs bg-indigo-100 text-accent px-1 py-1.75 rounded truncate cursor-pointer hover:bg-indigo-200"
+          >
             {format(new Date(ev.date), "HH:mm")} · {ev.title}
           </div>
         ))}
       </div>
-    </Link>
+    </div>
   );
 };

@@ -14,24 +14,25 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  name     String?
 
-  events    Event[]       @relation("OrganizerEvents")
-  joined    Participant[]
-  sessions  RefreshToken[]
+  events   Event[]        @relation("OrganizerEvents")
+  joined   Participant[]
+  sessions RefreshToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
+  id    String @id @default(uuid())
+  token String @unique
 
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
   revoked   Boolean  @default(false)
@@ -40,14 +41,14 @@ model RefreshToken {
 }
 
 model Event {
-  id           Int           @id @default(autoincrement())
-  title        String
-  description  String
-  date         DateTime
-  location     String
-  capacity     Int?          
-  isPublic     Boolean       @default(true) 
-  
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  capacity    Int?
+  isPublic    Boolean  @default(true)
+
   organizer    User          @relation("OrganizerEvents", fields: [organizerId], references: [id])
   organizerId  Int
   participants Participant[]
@@ -59,5 +60,6 @@ model Participant {
   userId  Int
   event   Event @relation(fields: [eventId], references: [id])
   eventId Int
+
   @@unique([userId, eventId])
 }

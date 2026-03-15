@@ -1,14 +1,14 @@
-import type { JSX } from "react"
-import { useAuthStore } from "../store/useAuthStore"
-import { Navigate } from "react-router-dom"
+import type { JSX } from "react";
+import { useAuthStore } from "../store/useAuthStore";
+import { Navigate, useLocation } from "react-router-dom";
 
+export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const token = useAuthStore((state) => state.token);
+  const location = useLocation();
 
-export const ProtectedRoute = ({children}: {children: JSX.Element}) => {
-   const isAuthenticated = useAuthStore((state)=> !!state.token)
+  if (!token) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
 
-   if(!isAuthenticated) {
-     return <Navigate to="/auth/login" replace />
-   }
-
-  return children
-}
+  return children;
+};

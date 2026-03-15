@@ -1,15 +1,30 @@
 import * as yup from 'yup';
 
-export const registerSchema = yup.object().shape({
-  name: yup.string().required('Name is required').min(3, 'Name too short'),
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required').min(6, 'Min 6 characters'),
+export const loginSchema = yup.object().shape({
+  email: yup
+    .string()
+    .email('Invalid email')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(6, 'Min 6 characters'),
 });
 
-export const loginSchema = yup.object().shape({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required').min(6, 'Min 6 characters'),
-});
+export const registerSchema = yup.object().shape({
+  name: yup
+    .string()
+    .required('Name is required')
+    .min(2, 'Name must be at least 2 characters'),
+  email: yup
+    .string()
+    .email('Invalid email')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(6, 'Min 6 characters'),
+ });
 
 export const eventSchema = yup.object({
   title: yup.string().required("Title is required").min(3),

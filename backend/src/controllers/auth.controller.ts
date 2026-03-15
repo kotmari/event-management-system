@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import {prisma} from "../db/prisma";
+import { prisma } from "../db/prisma";
 import { loginSchema, registerSchema } from "../dto/auth.dto";
 import { generateTokens } from "../utils/generateTokens";
 
@@ -11,13 +11,11 @@ export const registerUser = async (
   next: NextFunction,
 ) => {
   try {
-      
-    const { email, password } = await registerSchema.validate(req.body, { 
-      abortEarly: false 
+    const { name, email, password } = await registerSchema.validate(req.body, {
+      abortEarly: false,
     });
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-
 
     if (existingUser) {
       return res
@@ -29,12 +27,13 @@ export const registerUser = async (
 
     const user = await prisma.user.create({
       data: {
-         email,
+        name,
+        email,
         password: hashedPassword,
       },
     });
 
-     const { accessToken, refreshToken } = generateTokens(user.id);
+    const { accessToken, refreshToken } = generateTokens(user.id);
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
     await prisma.refreshToken.create({
@@ -46,7 +45,6 @@ export const registerUser = async (
     });
 
     const { password: _, ...userWithoutPassword } = user;
-
 
     return res
       .cookie("refreshToken", refreshToken, {
@@ -68,7 +66,9 @@ export const loginUser = async (
   next: NextFunction,
 ) => {
   try {
-    const validatedData = await loginSchema.validate(req.body, { abortEarly: false });
+    const validatedData = await loginSchema.validate(req.body, {
+      abortEarly: false,
+    });
 
     const { email, password } = validatedData;
 
@@ -79,8 +79,7 @@ export const loginUser = async (
     }
 
     const { accessToken, refreshToken } = generateTokens(user.id);
-    const hashedToken = await bcrypt.hash(refreshToken, 10)
-
+    const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     await prisma.refreshToken.create({
       data: {
@@ -100,14 +99,16 @@ export const loginUser = async (
       })
       .status(200)
       .json({ accessToken, user: userWithoutPassword });
-
-    
   } catch (err) {
     next(err);
   }
 };
 
-export const refreshTokens = async (req: Request, res: Response, next: NextFunction) => {
+export const refreshTokens = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
@@ -115,24 +116,29 @@ export const refreshTokens = async (req: Request, res: Response, next: NextFunct
       return res.status(401).json({ message: "Refresh token not found" });
     }
 
-  
-    const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { id: number };
-
+    const payload = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET!,
+    ) as { id: number };
 
     const storedTokens = await prisma.refreshToken.findMany({
-      where: { userId: payload.id, revoked: false }
+      where: { userId: payload.id, revoked: false },
     });
 
-     const tokenRecord = storedTokens.find(t => bcrypt.compare(refreshToken, t.token));
+    const tokenRecord = storedTokens.find((t) =>
+      bcrypt.compare(refreshToken, t.token),
+    );
 
     if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
-      return res.status(403).json({ message: "Invalid or expired refresh token" });
+      return res
+        .status(403)
+        .json({ message: "Invalid or expired refresh token" });
     }
 
-
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(payload.id);
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+      payload.id,
+    );
     const hashedNewToken = await bcrypt.hash(newRefreshToken, 10);
-
 
     await prisma.refreshToken.delete({ where: { id: tokenRecord.id } });
     await prisma.refreshToken.create({
@@ -140,9 +146,8 @@ export const refreshTokens = async (req: Request, res: Response, next: NextFunct
         token: hashedNewToken,
         userId: payload.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      }
+      },
     });
-
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
@@ -157,18 +162,22 @@ export const refreshTokens = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
+export const logoutUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
     if (refreshToken) {
       const payload = jwt.verify(
         refreshToken,
-        process.env.REFRESH_TOKEN_SECRET!
+        process.env.REFRESH_TOKEN_SECRET!,
       ) as { id: number };
 
       await prisma.refreshToken.deleteMany({
-        where: { userId: payload.id }
+        where: { userId: payload.id },
       });
     }
 
@@ -179,7 +188,6 @@ export const logoutUser = async (req: Request, res: Response, next: NextFunction
     });
 
     return res.status(200).json({ message: "Logged out successfully" });
-
   } catch (err) {
     next(err);
   }

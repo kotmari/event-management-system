@@ -17,7 +17,7 @@ export const getUserEvents = async (
         OR: [
           {
             participants: {
-              some: { id: userId },
+              some:{ userId: Number(userId)},
             },
           },
           { organizerId: userId },

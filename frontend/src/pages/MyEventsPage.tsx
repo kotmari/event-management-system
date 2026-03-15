@@ -18,10 +18,15 @@ import { Plus } from "lucide-react";
 
 export const MyEventsPage = () => {
   const { myEvents, isLoading, fetchMyEvents } = useEventStore();
-  
+
+  const [hasTriedLoading, setHasTriedLoading] = useState(false);
 
   useEffect(() => {
-    fetchMyEvents();
+    const loadEvents = async () => {
+      await fetchMyEvents();
+      setHasTriedLoading(true);
+    };
+    loadEvents();
   }, [fetchMyEvents]);
 
   const getEventsForDay = (day: Date) => {
@@ -90,6 +95,25 @@ export const MyEventsPage = () => {
 
   if (isLoading) return <div>Loading calendar...</div>;
 
+  if (hasTriedLoading && myEvents.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto pt-16">
+        <div className="text-center py-20">
+          <h3 className="text-xl font-semibold mb-2">No events yet</h3>
+          <p className="text-gray-500 mb-6">
+            You are not part of any events yet. Explore public events and join.
+          </p>
+          <Link
+            to="/events"
+            className="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent/90"
+          >
+            Explore public events
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto pt-16">
       <div className="flex justify-between items-center mb-6">
@@ -101,13 +125,14 @@ export const MyEventsPage = () => {
         </div>
 
         <Link
-          to="/create"
+          to="/events/create"
           className="flex items-center gap-1 text-sm font-medium bg-accent hover:bg-accent/80 py-1.5 px-3 rounded-xl transition-colors"
         >
           <Plus className="size-5 text-white" />{" "}
           <span className="text-white">Create</span>
         </Link>
       </div>
+
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
           <button onClick={prevMonth} className="border px-1 rounded">
@@ -144,7 +169,6 @@ export const MyEventsPage = () => {
         </div>
       </div>
 
-      {/* month view */}
       {view === "month" && (
         <>
           <div className="grid grid-cols-7 bg-foreground/10 text-sm text-gray-500 rounded-t-lg p-1">
@@ -161,7 +185,7 @@ export const MyEventsPage = () => {
         </>
       )}
 
-      {/* week view */}
+
       {view === "week" && renderWeek()}
     </div>
   );

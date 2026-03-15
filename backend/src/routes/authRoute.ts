@@ -5,7 +5,7 @@ const router = Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.post("refresh", refreshTokens);
+router.post("/refresh-token", refreshTokens);
 router.post("/logout", logoutUser);
 
 

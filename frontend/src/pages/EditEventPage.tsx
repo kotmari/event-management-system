@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -9,53 +9,60 @@ import { useEventStore } from "../store/useEventStore";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
 import { Button } from "../components/Button";
+import { useEffect } from "react";
 
-export const CreateEventPage = () => {
+export const EditEventPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const dateFromUrl = searchParams.get("date");
+  const { currentEvent, fetchEventById, updateEvent, isLoading } =
+    useEventStore();
+
+  useEffect(() => {
+    if (id) fetchEventById(Number(id));
+  }, [id, fetchEventById]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
-    reset,
   } = useForm<IEventForm>({
     resolver: yupResolver(eventSchema),
-    defaultValues: {
-      date: dateFromUrl || "",
-      isPublic: true,
-    },
-  });
 
-  const { createEvent, isLoading } = useEventStore();
+    values: currentEvent
+      ? {
+          title: currentEvent.title,
+          description: currentEvent.description,
+          date: currentEvent.date.split("T")[0],
+          time: currentEvent.date.split("T")[1].substring(0, 5),
+          location: currentEvent.location,
+          capacity: currentEvent.capacity?.toString() || "",
+          isPublic: currentEvent.isPublic,
+        }
+      : undefined,
+  });
 
   const today = new Date().toISOString().split("T")[0];
 
-  const onSubmit = async (data: IEventForm) => {
-    const selectedDateTime = new Date(`${data.date}T${data.time}`);
-    const now = new Date();
-    if (selectedDateTime < now) {
-      setError("time", {
-        message: "The selected time has already passed",
-      });
-      return;
-    }
+const onSubmit = async (data: IEventForm) => {
+  if (!id) return;
 
-    const eventPayload = {
-      title: data.title,
-      description: data.description,
-      date: selectedDateTime.toISOString(),
-      location: data.location,
-      capacity: data.capacity ? Number(data.capacity) : null,
-      isPublic: data.isPublic,
-    };
+  const fullDate = new Date(`${data.date}T${data.time}`).toISOString();
 
-    await createEvent(eventPayload);
-    navigate("/user/me/events");
-    reset();
+   const payload = {
+    title: data.title,
+    description: data.description,
+    date: fullDate,
+    location: data.location,
+    capacity: data.capacity ? Number(data.capacity) : null,
+    isPublic: data.isPublic
   };
+
+   await updateEvent(Number(id), payload);
+  navigate(`/events/${id}`);
+};
+
+  if (isLoading) return <div>Loading...</div>;
+
 
   return (
     <div className="max-w-6xl mx-auto px-6 pt-24 pb-12">
@@ -66,22 +73,30 @@ export const CreateEventPage = () => {
         <div className="p-2 rounded-full bg-gray-100 group-hover:bg-accent/10 transition-colors">
           <ArrowLeft className="size-4" />
         </div>
-        <span className="font-medium">Back to events calendar</span>
+        <span className="font-medium">Back</span>
       </button>
 
       <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded-lg">
-        <h2 className="text-2xl font-bold">Create New Event</h2>
-        <p>Fill in the details to create an amazing event </p>
+        <h2 className="text-2xl font-bold">Edit Event</h2>
+        <p>Edit the details to organise an unforgettable event</p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
           <Input
-            label={<span>Event Title <span className="text-red-500">*</span></span>}
+            label={
+              <span>
+                Event Title <span className="text-red-500">*</span>
+              </span>
+            }
             type="text"
             placeholder="e.g., Tech Conference 2026"
             {...register("title")}
             error={errors.title?.message}
           />
           <Textarea
-            label={<span>Description <span className="text-red-500">*</span></span>}            
+            label={
+              <span>
+                Description <span className="text-red-500">*</span>
+              </span>
+            }
             rows={3}
             placeholder="Describe what makes your event special..."
             {...register("description")}
@@ -90,7 +105,11 @@ export const CreateEventPage = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                label={<span>Date <span className="text-red-500">*</span></span>}
+                label={
+                  <span>
+                    Date <span className="text-red-500">*</span>
+                  </span>
+                }
                 type="date"
                 min={today}
                 {...register("date")}
@@ -99,7 +118,11 @@ export const CreateEventPage = () => {
             </div>
             <div className="flex-1">
               <Input
-                label={<span>Time <span className="text-red-500">*</span></span>}
+                label={
+                  <span>
+                    Time <span className="text-red-500">*</span>
+                  </span>
+                }
                 type="time"
                 {...register("time")}
                 error={errors.time?.message as string}
@@ -107,7 +130,11 @@ export const CreateEventPage = () => {
             </div>
           </div>
           <Input
-            label={<span>"Location <span className="text-red-500">*</span></span>}
+            label={
+              <span>
+                "Location <span className="text-red-500">*</span>
+              </span>
+            }
             type="text"
             placeholder="e.g., Convention Center, San Francisco"
             {...register("location")}
@@ -163,7 +190,7 @@ export const CreateEventPage = () => {
               Cancel
             </Button>
             <Button variant="primary" className="w-full" type="submit">
-              Create Event
+              Edit Event
             </Button>
           </div>
         </form>

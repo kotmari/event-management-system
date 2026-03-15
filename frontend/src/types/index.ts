@@ -1,18 +1,20 @@
 export interface User {
   id: string;
-  email: string;
   name: string;
+  email: string;
 }
 
 export interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
   register: (data: RegisterFormData) => Promise<boolean>;
   login: (data: LoginFormData) => Promise<boolean>;
   logout: () => void;
   clearError: () => void
+  setToken: (token: string) => void;
 }
 
 export interface RegisterFormData {
@@ -32,7 +34,7 @@ export interface IEventForm {
   date: string;
   time: string; 
   location: string;
-  capacity?: number | null;
+  capacity?: number | null | undefined;
   isPublic: boolean;
 }
 
@@ -42,11 +44,14 @@ export interface IEvent {
   description: string;
   date: string;
   location: string;
-  capacity?: number | null;
+   capacity?: number | null;
   isPublic: boolean;
   organizerId: number;
   organizer: User;
   participants: Participant[];
+  _count?: {   
+    participants: number;
+  };
 }
 
 export interface IEventState {
@@ -70,4 +75,23 @@ export interface Participant {
   id: number;
   userId: number;
   eventId: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+
+}
+
+export type FormValues = {
+  name?: string;
+  email: string;
+  password: string;
+  confirmPassword?: string;
+};
+
+export type AuthFormData = {
+  email: string
+  password: string
+  name?: string
 }

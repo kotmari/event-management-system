@@ -21,7 +21,7 @@ export const useEventStore = create<IEventState>()((set, get) => ({
 
   fetchMyEvents: async () => {
     try {
-      const { data } = await api.get<IEvent[]>("/user/me/events"); 
+      const { data } = await api.get<IEvent[]>("/user/me/events");
       set({ myEvents: data, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -31,7 +31,7 @@ export const useEventStore = create<IEventState>()((set, get) => ({
   fetchEventById: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const {data} = await api.get(`/events/${id}`);
+      const { data } = await api.get(`/events/${id}`);
       set({ currentEvent: data, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -64,7 +64,6 @@ export const useEventStore = create<IEventState>()((set, get) => ({
     }
   },
 
-
   deleteEvent: async (id) => {
     set({ isLoading: true, error: null });
     try {
@@ -79,26 +78,28 @@ export const useEventStore = create<IEventState>()((set, get) => ({
     }
   },
 
-
   joinEvent: async (id) => {
     set({ isLoading: true, error: null });
     try {
       await api.post(`/events/${id}/join`);
       await get().fetchEventById(id);
+      await get().fetchEvents();
       set({ isLoading: false });
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message;
-      set({ error: errorMessage, isLoading: false });
+      const message = err.response?.data?.message || "Something went wrong";
+      set({ error: message, isLoading: false });
+      throw new Error(message);
     }
   },
 
- 
   leaveEvent: async (id) => {
     set({ isLoading: true, error: null });
     try {
+      console.log("Leaving event:", id);
       await api.post(`/events/${id}/leave`);
+
       await get().fetchEventById(id);
-      set({ isLoading: false });
+      await get().fetchEvents();
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message;
       set({ error: errorMessage, isLoading: false });

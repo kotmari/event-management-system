@@ -21,7 +21,7 @@ export const createEvent = async (
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const userId = (req as any).user.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ message: "User not authorized" });
@@ -60,7 +60,7 @@ export const getEventById = async (
       include: {
         organizer: {
           select: {
-            email: true,
+            name: true,
           },
         },
         participants: {
@@ -89,10 +89,9 @@ export const publicEvents = async (
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const limit = parseInt(req.query.limit as string) || 10;
+    //const limit = parseInt(req.query.limit as string) || 10;
 
     const publicListEvents = await prisma.event.findMany({
-      take: limit,
       include: {
         _count: {
           select: { participants: true },
@@ -102,7 +101,7 @@ export const publicEvents = async (
         },
         organizer: {
           select: {
-            email: true,
+            name: true,
           },
         },
       },
@@ -156,6 +155,8 @@ export const updateEvent = async (
     next(err);
   }
 };
+
+
 export const deleteEvent = async (
   req: Request,
   res: Response,
@@ -164,7 +165,7 @@ export const deleteEvent = async (
   try {
     const { id } = req.params;
 
-    const userId = (req as any).user.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ message: "User not authorized" });
@@ -203,7 +204,7 @@ export const leaveEvent = async (
   try {
     const { id } = req.params;
 
-    const userId = (req as any).user.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ message: "User not authorized" });
@@ -218,78 +219,24 @@ export const leaveEvent = async (
       return res.status(404).json({ message: "Event not found" });
     }
 
-    const isParticipant = await prisma.event.findFirst({
-      where: {
-        id: Number(id),
-        participants: { some: { id: userId } },
-      },
-    });
 
-    if (!isParticipant) {
-      return res
-        .status(400)
-        .json({ message: "You are not participating in this event" });
-    }
+const deletedParticipant = await prisma.participant.deleteMany({
+  where: {
+    eventId: Number(id), 
+    userId: userId,     
+  },
+});
 
-    const updatedEvent = await prisma.event.update({
-      where: { id: Number(id) },
-      data: {
-        participants: {
-          disconnect: {
-            id: userId,
-          },
-        },
-      },
-    });
-    res
-      .status(200)
-      .json({ message: "Successfully left the event!", event: updatedEvent });
+if (deletedParticipant.count === 0) {
+  return res.status(404).json({ message: "Failed to leave event" });
+}
+
+res.status(200).json({ message: "Successfully left the event!" });
   } catch (err) {
     next(err);
   }
 };
 
-// export const joinEvent = async (req: Request, res: Response, next: NextFunction) => {
-
-//   try {
-//     const { id } = req.params;
-//     const userId = Number((req as any).user.id);
-//     const eventId = Number(id);
-
-//     const event = await prisma.event.findUnique({
-//       where: { id: eventId },
-//       include: { _count: { select: { participants: true } } },
-//     });
-
-//     if (!event) {
-//       return res.status(404).json({ message: "Event not found" });
-//     }
-
-//     if (event.capacity && event._count.participants >= event.capacity) {
-//       return res.status(400).json({ message: "Event is full" });
-//     }
-//     try {
-//       const newParticipant = await prisma.participant.create({
-//         data: {
-//           userId: userId,
-//           eventId: eventId,
-//         },
-//       });
-
-//       res.status(200).json({
-//         message: "Joined successfully",
-//         participant: newParticipant
-//       });
-//     } catch (error: any) {
-//       if (error.code === 'P2002') {
-//         return res.status(400).json({ message: "You have already joined this event" });
-//       }
-//       throw error;
-//     }
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 export const joinEvent = async (
   req: Request,

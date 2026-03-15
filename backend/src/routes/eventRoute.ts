@@ -6,7 +6,7 @@ const router = Router();
 
 router.post("/", authenticate,  createEvent);
 router.get("/",authenticate,  publicEvents);
-router.get("/:id",  getEventById);
+router.get("/:id", authenticate,  getEventById);
 router.patch("/:id", authenticate,  updateEvent);
 router.delete("/:id", authenticate,  deleteEvent);
 router.post("/:id/join", authenticate,  joinEvent);

@@ -6,13 +6,13 @@ import {
 } from "react-router-dom";
 import { EventsPage } from "./pages/EventsPage";
 import { MyEventsPage } from "./pages/MyEventsPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import { AuthPage } from "./pages/AuthPage";
 import { EventDetailsPage } from "./pages/EventDetailsPage";
 import { CreateEventPage } from "./pages/CreateEventPage";
 import { Header } from "./components/header/Header";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { JoinEventPage } from "./pages/JoinEventPage";
+import { EditEventPage } from "./pages/EditEventPage";
+
 
 function App() {
   return (
@@ -21,10 +21,26 @@ function App() {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<EventsPage />} />
-            <Route path="/:id" element={<EventDetailsPage />} />
-            <Route path="/auth/login" element={<LoginPage />} />
-            <Route path="/auth/register" element={<RegisterPage />} />
+            <Route path="/" element={<AuthPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute>
+                  <EventsPage />
+                </ProtectedRoute>
+
+              }
+            />
+            <Route
+              path="/events/:id"
+              element={
+                <ProtectedRoute>
+                  <EventDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+           
             <Route
               path="/user/me/events"
               element={
@@ -35,7 +51,7 @@ function App() {
             />
 
             <Route
-              path="/create"
+              path="/events/create"
               element={
                 <ProtectedRoute>
                   <CreateEventPage />
@@ -43,19 +59,11 @@ function App() {
               }
             />
 
-            {/* <Route
-              path="/:id/edit"
+            <Route
+              path="/events/:id/edit"
               element={
                 <ProtectedRoute>
                   <EditEventPage />
-                </ProtectedRoute>
-              }
-            /> */}
-            <Route
-              path="/:id/join"
-              element={
-                <ProtectedRoute>
-                  <JoinEventPage />
                 </ProtectedRoute>
               }
             />

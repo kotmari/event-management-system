@@ -11,14 +11,16 @@ import {
 import { Button } from "../components/Button";
 import { formatDate } from "../utils/date";
 import { Card } from "../components/Card";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
 export const EventsPage = () => {
-  const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { events, isLoading, error, joinEvent, fetchEvents } = useEventStore();
+  const { events, isLoading, error, joinEvent, fetchEvents, leaveEvent } =
+    useEventStore();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const currentUserId = Number(user?.id);
 
   useEffect(() => {
     fetchEvents();
@@ -30,13 +32,6 @@ export const EventsPage = () => {
       event.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleJoinClick = async (eventId: number) => {
-    if (!user) {
-      navigate("/auth/login");
-      return;
-    }
-    await joinEvent(eventId);
-  };
 
   if (isLoading) {
     return (
@@ -82,62 +77,98 @@ export const EventsPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => (
-            <Card
-              key={event.id}
-              variant="bordered"
-              className="group overflow-hidden hover:scale-101 transition-all duration-300"
-            >
-              <div className="p-5">
-                <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
-                  {event.title}
-                </h3>
+          {filteredEvents.map((event) => {
+            const isJoined = event.participants?.some(
+              (p) => p.userId === currentUserId,
+            );
+            const isFull =
+              event.capacity &&
+              (event.participants?.length || 0) >= event.capacity;
 
-                <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                  {event.description}
-                </p>
-                <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                  Organizer:{" "}
-                  <span className="font-bold">{event.organizer.name}</span>
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Calendar className="size-4" />
-                    <span>{formatDate.fullDate(event.date)}</span>
-                  </div>
+            return (
+              <Card
+                key={event.id}
+                variant="bordered"
+                className="group overflow-hidden"
+              >
+                <div className="p-5">
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
+                    {event.title}
+                  </h3>
 
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="size-4" />
-                    <span>{formatDate.time(event.date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <MapPin className="size-4" />
-                    {event.location}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <UserCheck2 className="size-4" />
-                    <span>{event.participants?.length || 0}</span>
+                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                    {event.description}
+                  </p>
+
+                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                    Organizer:{" "}
+                    <span className="font-bold">{event.organizer.email}</span>
+                  </p>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Calendar className="size-4" />
+
+                      <span>{formatDate.fullDate(event.date)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Clock className="size-4" />
+
+                      <span>{formatDate.time(event.date)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <MapPin className="size-4" />
+
+                      {event.location}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <UserCheck2 className="size-4" />
+
+                      <span>
+                        {event.participants?.length || 0}
+
+                        {event.capacity ? ` / ${event.capacity}` : ""}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-5 mt-6">
-                  <Link
-                    to={`/${event.id}/join`}
-                    className="w-full"
-                    onClick={() => handleJoinClick(event.id)}
-                  >
-                    <Button variant="primary" className="w-full">
+
+                <div className="flex gap-3 mt-6">
+                  {isFull ? (
+                    <Button disabled className="w-full bg-gray-300">
+                      Full
+                    </Button>
+                  ) : isJoined ? (
+                    <Button
+                      variant="ghost"
+                      className="w-full border-red-500 text-red-500 hover:bg-red-50"
+                      onClick={() => leaveEvent(event.id)}
+                    >
+                      Leave
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      className="w-full"
+                      onClick={() => joinEvent(event.id)}
+                    >
                       Join
                     </Button>
-                  </Link>
-                  <Link to={`/${event.id}`} className="w-full">
+                  )}
+
+
+                  <Link to={`/events/${event.id}`} className="w-full">
                     <Button variant="ghost" className="w-full">
                       Details
                     </Button>
                   </Link>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
