@@ -27,7 +27,7 @@ Frontend: http://localhost:5173
 Backend API: http://localhost:5001
 
 ## 🛠 Project Structure
-/backend - Node.js, Express, Prisma, TypeScript.
+/backend - Node.js, Express, Prisma, neon, TypeScript.
 
 /frontend - React, Vite, Tailwind CSS, React Hook Form.
 
