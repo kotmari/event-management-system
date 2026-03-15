@@ -1,28 +1,22 @@
-version: '3.8'
-
 services:
   backend:
     build: ./backend
+    env_file: .env
     ports:
       - "5001:5001"
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/mydb
-      - PORT=5001
     depends_on:
       - db
     command: sh -c "npx prisma migrate deploy && node dist/server.js"
 
   frontend:
     build: ./frontend
+    env_file: .env 
     ports:
       - "5173:80"
 
   db:
     image: postgres:15-alpine
+    env_file: .env 
     restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
     ports:
       - "5432:5432"

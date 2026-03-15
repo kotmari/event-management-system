@@ -1,3 +1,16 @@
+# 🚀 Quick Start
+
+1. **Clone the repository:**
+   `git clone <your-repo-url>`
+
+2. **Setup environment variables:**
+   Create a `.env` file in the root directory by copying the example:
+   ```bash
+   cp .env.example .env
+
+ 3. **Launch the project:** 
+    docker-compose up --build
+
 # Backend .env
 DATABASE_URL=postgresql://user:password@db:5432/events_db
 
