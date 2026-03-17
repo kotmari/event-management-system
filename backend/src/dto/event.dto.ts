@@ -6,6 +6,7 @@ export interface CreateEventDTO {
   date: Date;
   location: string;
   capacity?: number | null;
+  tagIds?: number[];
   isPublic: boolean;
 }
 
@@ -33,6 +34,13 @@ export const eventSchema = yup.object({
     .nullable()
     .positive("Capacity must be a positive number")
     .optional(),
+
+    tagIds: yup
+    .array()
+    .of(yup.number())
+    .max(5, "You can select up to 5 tags maximum")
+    .optional()
+    .default([]),
 
   isPublic: yup.boolean().default(true),
 });
