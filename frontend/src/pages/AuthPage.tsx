@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
-import { Button } from "../components/Button";
-import { Input } from "../components/Input";
+import { Button } from "../components/ui-components/Button";
+import { Input } from "../components/ui-components/Input";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema, registerSchema } from "../utils/validation";
@@ -8,10 +8,6 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { AuthFormData, FormValues } from "../types";
-
-
-
-
 
 export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,20 +43,20 @@ export const AuthPage = () => {
 
   const toggleMode = () => setIsLogin(!isLogin);
 
-const onSubmit = async (data: AuthFormData) => {
-  if (isLogin) {
-    await login({
-      email: data.email,
-      password: data.password
-    });
-  } else {
-    await registerUser({
-      name: data.name!,
-      email: data.email,
-      password: data.password
-    });
-  }
-};
+  const onSubmit = async (data: AuthFormData) => {
+    if (isLogin) {
+      await login({
+        email: data.email,
+        password: data.password,
+      });
+    } else {
+      await registerUser({
+        name: data.name!,
+        email: data.email,
+        password: data.password,
+      });
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto pt-24 px-6">
@@ -72,17 +68,20 @@ const onSubmit = async (data: AuthFormData) => {
         {!isLogin && (
           <Input
             label="Name"
+            placeholder="Enter full name..."
             {...register("name")}
             error={errors.name?.message}
           />
         )}
         <Input
           label="Email"
+          placeholder="exemple@email.com"
           {...register("email")}
           error={errors.email?.message}
         />
         <Input
           label="Password"
+          placeholder="********"
           type="password"
           {...register("password")}
           error={errors.password?.message}

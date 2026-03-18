@@ -6,9 +6,11 @@ import type { IEventForm } from "../types";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { eventSchema } from "../utils/validation";
 import { useEventStore } from "../store/useEventStore";
-import { Input } from "../components/Input";
-import { Textarea } from "../components/Textarea";
-import { Button } from "../components/Button";
+import { Input } from "../components/ui-components/Input";
+import { Textarea } from "../components/ui-components/Textarea";
+import { Button } from "../components/ui-components/Button";
+import { TAG_CONFIG } from "../constants/tags";
+import { useEffect } from "react";
 
 export const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -20,16 +22,28 @@ export const CreateEventPage = () => {
     handleSubmit,
     formState: { errors },
     setError,
+    setValue,
+    watch,
     reset,
   } = useForm<IEventForm>({
     resolver: yupResolver(eventSchema),
     defaultValues: {
+      title: "",
+      description: "",
+      location: "",
       date: dateFromUrl || "",
+      time: "",
       isPublic: true,
+      tagIds: [],
+      capacity: null,
     },
   });
 
-  const { createEvent, isLoading } = useEventStore();
+  const { createEvent, tags, fetchTags } = useEventStore();
+
+  useEffect(() => {
+    fetchTags();
+  }, [fetchTags]);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -46,6 +60,7 @@ export const CreateEventPage = () => {
     const eventPayload = {
       title: data.title,
       description: data.description,
+      tagIds: data.tagIds,
       date: selectedDateTime.toISOString(),
       location: data.location,
       capacity: data.capacity ? Number(data.capacity) : null,
@@ -55,6 +70,22 @@ export const CreateEventPage = () => {
     await createEvent(eventPayload);
     navigate("/user/me/events");
     reset();
+  };
+
+  const selectedTagIds = watch("tagIds") || [];
+
+  const toggleTag = (tagId: number) => {
+    const currentTags = Array.isArray(selectedTagIds)
+      ? [...selectedTagIds]
+      : [];
+    const index = currentTags.indexOf(tagId);
+
+    if (index > -1) {
+      currentTags.splice(index, 1);
+    } else if (currentTags.length < 5) {
+      currentTags.push(tagId);
+    }
+    setValue("tagIds", currentTags, { shouldValidate: true });
   };
 
   return (
@@ -74,23 +105,79 @@ export const CreateEventPage = () => {
         <p>Fill in the details to create an amazing event </p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
           <Input
-            label={<span>Event Title <span className="text-red-500">*</span></span>}
+            label={
+              <span>
+                Event Title <span className="text-red-500">*</span>
+              </span>
+            }
             type="text"
             placeholder="e.g., Tech Conference 2026"
             {...register("title")}
             error={errors.title?.message}
           />
           <Textarea
-            label={<span>Description <span className="text-red-500">*</span></span>}            
+            label={
+              <span>
+                Description <span className="text-red-500">*</span>
+              </span>
+            }
             rows={3}
             placeholder="Describe what makes your event special..."
             {...register("description")}
             error={errors.description?.message as string}
           />
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700">
+              Select Categories{" "}
+              <span className="text-gray-400 font-normal">(up to 5)</span>
+            </label>
+
+            <div className="flex flex-wrap gap-3 p-4 border border-gray-200 rounded-2xl bg-gray-50/50">
+              {tags.map((tag) => {
+                const isSelected = selectedTagIds.includes(tag.id);
+                const config = TAG_CONFIG[tag.name] || TAG_CONFIG.Default;
+                const Icon = config.icon;
+
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    style={{
+                      backgroundColor: isSelected ? config.bg : "white",
+                      borderColor: isSelected ? config.border : "#E5E7EB",
+                      color: isSelected ? config.text : "#6B7280",
+                      ...(isSelected && { ringColor: config.border }),
+                    }}
+                    className={`
+            flex items-center gap-2 px-3 py-1 rounded-xl border transition-all duration-200
+            hover:shadow-md active:scale-95 shadow-sm
+            ${isSelected ? "border-2 ring-2 ring-offset-1" : "opacity-70 hover:opacity-100"}
+          `}
+                  >
+                    <Icon
+                      className={`size-4 ${isSelected ? "animate-pulse" : ""}`}
+                    />
+                    <span className="text-sm font-medium">{tag.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {errors.tagIds && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.tagIds.message}
+              </p>
+            )}
+          </div>
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                label={<span>Date <span className="text-red-500">*</span></span>}
+                label={
+                  <span>
+                    Date <span className="text-red-500">*</span>
+                  </span>
+                }
                 type="date"
                 min={today}
                 {...register("date")}
@@ -99,7 +186,11 @@ export const CreateEventPage = () => {
             </div>
             <div className="flex-1">
               <Input
-                label={<span>Time <span className="text-red-500">*</span></span>}
+                label={
+                  <span>
+                    Time <span className="text-red-500">*</span>
+                  </span>
+                }
                 type="time"
                 {...register("time")}
                 error={errors.time?.message as string}
@@ -107,7 +198,11 @@ export const CreateEventPage = () => {
             </div>
           </div>
           <Input
-            label={<span>"Location <span className="text-red-500">*</span></span>}
+            label={
+              <span>
+                Location <span className="text-red-500">*</span>
+              </span>
+            }
             type="text"
             placeholder="e.g., Convention Center, San Francisco"
             {...register("location")}

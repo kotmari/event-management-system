@@ -8,6 +8,7 @@ import eventRoute from "./routes/eventRoute";
 import { swaggerUi, swaggerDocument } from "./config/swagger";
 import userRoute from "./routes/userRoute";
 import path from "path";
+import tagRoutes from "./routes/tagRoutes";
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -17,11 +18,12 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
-app.use(cookieParser());
+app.use(cookieParser())
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes)
 app.use('/api/events', eventRoute)
 app.use('/api/user', userRoute)
+app.use('/api/tags', tagRoutes)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(errorHandler)

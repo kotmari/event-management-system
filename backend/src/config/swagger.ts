@@ -210,6 +210,29 @@ const swaggerDocument = {
         },
       },
     },
+    "/tags": {
+      get: {
+        summary: "Get all available tags",
+        tags: ["Tags"],
+        responses: { "200": 
+          { description: "List of tags retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {"type": "integer", "example": 1},
+                      "name": {"type": "string", "example": "Technology"},
+                    }
+                  }
+                }
+              }
+            }
+           } },
+      },
+    },
   },
 };
 

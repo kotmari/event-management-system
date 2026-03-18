@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import type { IEvent } from "../types";
+import { TAG_CONFIG } from "../constants/tags";
 
 export interface CalendarCellProps {
   day: Date;
@@ -37,16 +38,25 @@ export const CalendarCell = ({ day, isSelected, events, className }: CalendarCel
         {format(day, "d")}
       </span>
 
-      <div className="mt-1 space-y-1">
-        {events.map((ev) => (
+      <div className="mt-1 space-y-1 overflow-y-auto max-h-[80%] custom-scrollbar">
+        {events.map((ev) => {
+          const firstTag = ev.tags?.[0]?.name;
+          const tagStyle = TAG_CONFIG[firstTag as keyof typeof TAG_CONFIG] || TAG_CONFIG.Default;
+          return (
           <div
             key={ev.id}
             onClick={(e) => handleEventClick(e, ev.id)}
-            className="text-xs bg-indigo-100 text-accent px-1 py-1.75 rounded truncate cursor-pointer hover:bg-indigo-200"
+            style={{ 
+                backgroundColor: tagStyle.bg, 
+                color: tagStyle.text,       
+                borderLeft: `3px solid ${tagStyle.border}`
+              }}
+            className="text-[10px] px-1.5 py-1 rounded-sm truncate cursor-pointer hover:brightness-95 transition-all shadow-sm font-medium mb-1"
           >
             {format(new Date(ev.date), "HH:mm")} · {ev.title}
           </div>
-        ))}
+          )
+})}
       </div>
     </div>
   );

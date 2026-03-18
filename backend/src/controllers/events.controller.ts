@@ -179,7 +179,9 @@ export const updateEvent = async (
           : undefined,
       },
       include: {
-        tags: true
+        tags: { select: { id: true, name: true } },
+        _count: { select: { participants: true } },
+        organizer: { select: { name: true } }
       }
     });
 

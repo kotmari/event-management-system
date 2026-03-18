@@ -1,30 +1,36 @@
 import { useEffect, useState } from "react";
 import { useEventStore } from "../store/useEventStore";
-import {
-  Calendar,
-  MapPin,
-  Loader2,
-  UserCheck2,
-  Clock,
-  Search,
-} from "lucide-react";
-import { Button } from "../components/Button";
-import { formatDate } from "../utils/date";
-import { Card } from "../components/Card";
-import { Link } from "react-router-dom";
+import { Loader2, Search } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import { TagBadge } from "../components/ui-components/TagBadge";
+import { Input } from "../components/ui-components/Input";
+import { EventCard } from "../components/EventCard";
 
 export const EventsPage = () => {
   const { user } = useAuthStore();
-  const { events, isLoading, error, joinEvent, fetchEvents, leaveEvent } =
-    useEventStore();
+  const {
+    events,
+    tags,
+    isLoading,
+    error,
+    joinEvent,
+    fetchEvents,
+    fetchTags,
+    leaveEvent,
+  } = useEventStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTag, setActiveTag] = useState<number | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  const currentUserId = Number(user?.id);
+  const currentUserId = user ? Number(user.id) : null;
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    const loadData = async () => {
+      await Promise.all([fetchTags(), fetchEvents()]);
+      setIsFirstLoad(false);
+    };
+    loadData();
+  }, [fetchEvents, fetchTags]);
 
   const filteredEvents = events.filter(
     (event) =>
@@ -32,14 +38,10 @@ export const EventsPage = () => {
       event.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="size-10 animate-spin text-accent" />
-      </div>
-    );
-  }
+  const handleFilter = (id: number | null) => {
+    setActiveTag(id);
+    fetchEvents(id || undefined);
+  };
 
   if (error) {
     return <div className="text-center mt-20 text-red-500">Error: {error}</div>;
@@ -48,9 +50,24 @@ export const EventsPage = () => {
   return (
     <div className="max-w-6xl mx-auto px-6 pt-24 pb-12">
       <h1 className="text-3xl font-bold mb-8 text-gray-900">Discover Events</h1>
+      <div className="flex gap-2 justify-center flex-wrap sm:justify-end mb-8">
+        <TagBadge
+          name="All"
+          isSelected={activeTag === null}
+          onClick={() => handleFilter(null)}
+        />
+        {tags.map((tag) => (
+          <TagBadge
+            key={tag.id}
+            name={tag.name}
+            isSelected={activeTag === tag.id}
+            onClick={() => handleFilter(tag.id)}
+          />
+        ))}
+      </div>
       <div className="relative mb-10 max-w-xl">
         <Search className="absolute right-3 top-3.5 size-5 text-gray-400" />
-        <input
+        <Input
           type="text"
           placeholder="Search events by title or description..."
           value={searchQuery}
@@ -58,118 +75,45 @@ export const EventsPage = () => {
           className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-accent transition-all"
         />
       </div>
-
-      {events.length === 0 ? (
-        <p className="text-gray-500 text-center py-20">
-          There are no events yet. Be the first to create one!
-        </p>
-      ) : filteredEvents.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-gray-500 mb-2">
-            No events found for "{searchQuery}"
-          </p>
-          <button
-            onClick={() => setSearchQuery("")}
-            className="text-accent hover:underline"
-          >
-            Clear search
-          </button>
+      {isLoading || isFirstLoad ? (
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="animate-spin text-accent" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => {
-            const isJoined = event.participants?.some(
-              (p) => p.userId === currentUserId,
-            );
-            const isFull =
-              event.capacity &&
-              (event.participants?.length || 0) >= event.capacity;
-
-            return (
-              <Card
-                key={event.id}
-                variant="bordered"
-                className="group overflow-hidden"
+        <>
+          {events.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed">
+              <p className="text-gray-500">There are no events yet.</p>
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="inline-flex p-4 bg-gray-100 rounded-full mb-4">
+                <Search className="size-8 text-gray-400" />
+              </div>
+              <p className="text-gray-600 text-lg font-medium">
+                No results for "{searchQuery}"
+              </p>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-accent hover:text-accent/80 font-semibold mt-2 transition-colors"
               >
-                <div className="p-5">
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
-                    {event.title}
-                  </h3>
-
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                    {event.description}
-                  </p>
-
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                    Organizer:{" "}
-                    <span className="font-bold">{event.organizer.email}</span>
-                  </p>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Calendar className="size-4" />
-
-                      <span>{formatDate.fullDate(event.date)}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Clock className="size-4" />
-
-                      <span>{formatDate.time(event.date)}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <MapPin className="size-4" />
-
-                      {event.location}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <UserCheck2 className="size-4" />
-
-                      <span>
-                        {event.participants?.length || 0}
-
-                        {event.capacity ? ` / ${event.capacity}` : ""}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  {isFull ? (
-                    <Button disabled className="w-full bg-gray-300">
-                      Full
-                    </Button>
-                  ) : isJoined ? (
-                    <Button
-                      variant="ghost"
-                      className="w-full border-red-500 text-red-500 hover:bg-red-50"
-                      onClick={() => leaveEvent(event.id)}
-                    >
-                      Leave
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="primary"
-                      className="w-full"
-                      onClick={() => joinEvent(event.id)}
-                    >
-                      Join
-                    </Button>
-                  )}
-
-
-                  <Link to={`/events/${event.id}`} className="w-full">
-                    <Button variant="ghost" className="w-full">
-                      Details
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                Clear search and see all events
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  currentUserId={currentUserId}
+                  joinEvent={joinEvent}
+                  leaveEvent={leaveEvent}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
