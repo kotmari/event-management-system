@@ -34,7 +34,8 @@ export interface IEventForm {
   date: string;
   time: string; 
   location: string;
-  capacity?: number | null | undefined;
+  tagIds?: number[];
+  capacity?: number | null;
   isPublic: boolean;
 }
 
@@ -44,24 +45,37 @@ export interface IEvent {
   description: string;
   date: string;
   location: string;
-   capacity?: number | null;
+  capacity?: number | null;
   isPublic: boolean;
   organizerId: number;
   organizer: User;
+  tags: ITag[];
   participants: Participant[];
   _count?: {   
     participants: number;
   };
 }
 
+export interface ITag {
+  name: string;
+  id: number;
+}
+
+export interface IMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface IEventState {
   events: IEvent[];
   currentEvent: IEvent | null;
+  tags: ITag[];
   myEvents: IEvent[];
   isLoading: boolean;
   error: string | null;
 
-  fetchEvents: () => Promise<void>;
+  fetchEvents: (tagId?: number | null) => Promise<void>;
+  fetchTags: () => Promise<void>;
   fetchMyEvents: () => Promise<void>;
   fetchEventById: (id: number) => Promise<void>;
   createEvent: (eventData: Partial<IEvent>) => Promise<void>;
@@ -70,6 +84,15 @@ export interface IEventState {
   joinEvent: (id: number) => Promise<void>;
   leaveEvent: (id: number) => Promise<void>;
 }
+
+export interface AIState {
+  messages: IMessage[];
+  isLoading: boolean;
+  error: string | null;
+  askAssistant: (question: string) => Promise<void>;
+  clearChat: () => void;
+}
+
 
 export interface Participant {
   id: number;

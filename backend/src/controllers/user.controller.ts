@@ -23,6 +23,9 @@ export const getUserEvents = async (
           { organizerId: userId },
         ],
       },
+      include: {
+        tags: true
+      },
       orderBy: {
         date: 'asc'
       }

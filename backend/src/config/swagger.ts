@@ -1,3 +1,4 @@
+
 import swaggerUi from "swagger-ui-express";
 
 const swaggerDocument = {
@@ -192,21 +193,89 @@ const swaggerDocument = {
         },
       },
     },
-   "/user/me/events": {
+    "/user/me/events": {
       get: {
         summary: "Get my events (calendar)",
         tags: ["Profile"],
         security: [{ bearerAuth: [] }],
-        responses: { 
-          "200": { 
+        responses: {
+          "200": {
             description: "List of user's events",
             content: {
               "application/json": {
-                schema: { type: "array", items: { type: "object" } }
-              }
-            }
+                schema: { type: "array", items: { type: "object" } },
+              },
+            },
           },
-          "401": { description: "Unauthorized" }
+          "401": { description: "Unauthorized" },
+        },
+      },
+    },
+    "/tags": {
+      get: {
+        summary: "Get all available tags",
+        tags: ["Tags"],
+        responses: {
+          "200": {
+            description: "List of tags retrieved successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "integer", example: 1 },
+                      name: { type: "string", example: "Technology" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/ai/chat": {
+      post: {
+        summary: "Ask the AI Assistant about your events",
+        tags: ["AI Assistant"],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  question: {
+                    type: "string",
+                    example: "What events do I have this weekend?",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "AI response generated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    answer: {
+                      type: "string",
+                      example: "You have a Tech Conference on Saturday at 10:00 AM.",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "401": { description: "Unauthorized - User not logged in" },
+          "500": { description: "Internal Server Error" },
         },
       },
     },

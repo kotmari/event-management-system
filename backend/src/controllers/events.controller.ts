@@ -14,12 +14,8 @@ export const createEvent = async (
   try {
     const validatedData = await eventSchema.validate(req.body);
 
-    const { title, description, date, location, capacity, isPublic } =
+    const { title, description, date, location, capacity, tagIds, isPublic } =
       validatedData;
-
-    if (!title || !description || !date || !location) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
 
     const userId = req.user?.id;
 
@@ -35,7 +31,14 @@ export const createEvent = async (
         location,
         isPublic: isPublic ?? true,
         capacity: capacity ?? null,
+        tags:
+          tagIds && tagIds.length > 0
+            ? { connect: tagIds.map((id) => ({ id: id! })) }
+            : undefined,
         organizerId: userId,
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -64,13 +67,20 @@ export const getEventById = async (
           },
         },
         participants: {
-          include: { user: true },
+          include: { user: { select: { name: true, email: true } } },
         },
         _count: {
           select: { participants: true },
         },
+        tags: {
+          select: { id: true, name: true },
+        },
       },
     });
+
+    if (!eventDetails) {
+      return res.status(404).json({ message: "Event not found" });
+    }
 
     res.status(200).json(eventDetails);
   } catch (err) {
@@ -91,7 +101,18 @@ export const publicEvents = async (
     }
     //const limit = parseInt(req.query.limit as string) || 10;
 
+    const { tagId } = req.query;
+
     const publicListEvents = await prisma.event.findMany({
+      where: {
+        tags: tagId
+          ? {
+              some: {
+                id: Number(tagId),
+              },
+            }
+          : undefined,
+      },
       include: {
         _count: {
           select: { participants: true },
@@ -103,6 +124,9 @@ export const publicEvents = async (
           select: {
             name: true,
           },
+        },
+        tags: {
+          select: { id: true, name: true },
         },
       },
       orderBy: {
@@ -125,6 +149,7 @@ export const updateEvent = async (
     const { id } = req.params;
 
     const userId = (req as any).user.id;
+    const { tagIds, ...updateData } = req.body;
 
     if (!userId) {
       return res.status(401).json({ message: "User not authorized" });
@@ -140,14 +165,24 @@ export const updateEvent = async (
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (existingEvent?.organizerId !== userId) {
+    if (existingEvent.organizerId !== userId) {
       return res
         .status(403)
         .json({ message: "You are not the organizer of this event" });
     }
     const updateEvent = await prisma.event.update({
       where: { id: Number(id) },
-      data: req.body,
+      data: {
+        ...updateData,
+        tags: tagIds
+          ? { set: tagIds.map((id: number) => ({ id })) }
+          : undefined,
+      },
+      include: {
+        tags: { select: { id: true, name: true } },
+        _count: { select: { participants: true } },
+        organizer: { select: { name: true } }
+      }
     });
 
     res.status(200).json(updateEvent);
@@ -155,7 +190,6 @@ export const updateEvent = async (
     next(err);
   }
 };
-
 
 export const deleteEvent = async (
   req: Request,
@@ -219,24 +253,22 @@ export const leaveEvent = async (
       return res.status(404).json({ message: "Event not found" });
     }
 
+    const deletedParticipant = await prisma.participant.deleteMany({
+      where: {
+        eventId: Number(id),
+        userId: userId,
+      },
+    });
 
-const deletedParticipant = await prisma.participant.deleteMany({
-  where: {
-    eventId: Number(id), 
-    userId: userId,     
-  },
-});
+    if (deletedParticipant.count === 0) {
+      return res.status(404).json({ message: "Failed to leave event" });
+    }
 
-if (deletedParticipant.count === 0) {
-  return res.status(404).json({ message: "Failed to leave event" });
-}
-
-res.status(200).json({ message: "Successfully left the event!" });
+    res.status(200).json({ message: "Successfully left the event!" });
   } catch (err) {
     next(err);
   }
 };
-
 
 export const joinEvent = async (
   req: Request,
@@ -262,12 +294,10 @@ export const joinEvent = async (
     }
 
     if (event.organizerId === userId) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "You are the organizer of this event and cannot join as a participant",
-        });
+      return res.status(400).json({
+        message:
+          "You are the organizer of this event and cannot join as a participant",
+      });
     }
 
     if (event.capacity && event._count.participants >= event.capacity) {

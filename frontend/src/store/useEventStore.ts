@@ -1,21 +1,34 @@
 import { create } from "zustand";
-import type { IEvent, IEventState } from "../types";
+import type { IEvent, IEventState, ITag } from "../types";
 import { api } from "../api/api";
 
 export const useEventStore = create<IEventState>()((set, get) => ({
   events: [],
+  tags: [],
   myEvents: [],
   currentEvent: null,
   isLoading: false,
   error: null,
 
-  fetchEvents: async () => {
+  fetchEvents: async (tagId?: number | null) => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.get<IEvent[]>("/events");
+      const url = tagId ? `/events?tagId=${tagId}` : "/events";
+      const { data } = await api.get<IEvent[]>(url);
       set({ events: data, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
+    }
+  },
+
+  fetchTags: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data } = await api.get<ITag[]>("/tags")
+      set({tags: data, isLoading: false})
+      
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
     }
   },
 

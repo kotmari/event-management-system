@@ -10,11 +10,12 @@ import {
   Trash2,
   Edit2,
 } from "lucide-react";
-import { Button } from "../components/Button";
+import { Button } from "../components/ui-components/Button";
 import { formatDate } from "../utils/date";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { ConfirmModal } from "../components/ConfirmModal";
+import { ConfirmModal } from "../components/ui-components/ConfirmModal";
+import { TagBadge } from "../components/ui-components/TagBadge";
 
 export const EventDetailsPage = () => {
   const { id } = useParams();
@@ -58,28 +59,43 @@ export const EventDetailsPage = () => {
     }
   };
 
-  if (isLoading)
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="size-10 animate-spin text-accent" />
       </div>
     );
-  if (error)
+  }
+
+  if (error) {
     return <div className="text-center mt-20 text-red-500">Error: {error}</div>;
+  }
   if (!event) return <div className="text-center mt-20">Event not found</div>;
 
   return (
     <div className="max-w-4xl mx-auto px-6 pt-12 pb-12">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-500 mb-6 hover:text-accent"
+        className="flex items-center gap-3 text-gray-500 mb-6 hover:text-accent group transition-all duration-200 px-0 bg-transparent hover:bg-transparent border-0"
       >
-        <ArrowLeft className="size-4" /> Back
-      </button>
+        <span className="flex items-center justify-center rounded-full border border-gray-200 p-2 group-hover:bg-accent/10 group-hover:border-accent/30 transition-all duration-200">
+          <ArrowLeft className="size-4" />
+        </span>
+        <span className="font-medium">Back</span>
+      </Button>
 
       <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <h1 className="text-3xl font-bold mb-4">{event.title}</h1>
         <p className="text-gray-600 mb-6">{event.description}</p>
+
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {event.tags.map((t) => (
+              <TagBadge key={t.id} name={t.name} />
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-sm text-gray-600">
           <div className="flex items-center gap-2">
