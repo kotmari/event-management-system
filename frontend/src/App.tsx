@@ -12,64 +12,33 @@ import { CreateEventPage } from "./pages/CreateEventPage";
 import { Header } from "./components/header/Header";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { EditEventPage } from "./pages/EditEventPage";
-
+import { MainLayout } from "./components/layout/MainLayout";
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Router>
         <Header />
-        <main className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<AuthPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route
-              path="/events"
-              element={
-                <ProtectedRoute>
-                  <EventsPage />
-                </ProtectedRoute>
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/" element={<AuthPage />} />
 
-              }
-            />
-            <Route
-              path="/events/:id"
-              element={
-                <ProtectedRoute>
-                  <EventDetailsPage />
-                </ProtectedRoute>
-              }
-            />
-           
-            <Route
-              path="/user/me/events"
-              element={
-                <ProtectedRoute>
-                  <MyEventsPage />
-                </ProtectedRoute>
-              }
-            />
+          <Route
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/events/:id" element={<EventDetailsPage />} />
+            <Route path="/user/me/events" element={<MyEventsPage />} />
+            <Route path="/events/create" element={<CreateEventPage />} />
+            <Route path="/events/:id/edit" element={<EditEventPage />} />
+          </Route>
 
-            <Route
-              path="/events/create"
-              element={
-                <ProtectedRoute>
-                  <CreateEventPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/events/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <EditEventPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Router>
     </div>
   );

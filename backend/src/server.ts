@@ -9,6 +9,7 @@ import { swaggerUi, swaggerDocument } from "./config/swagger";
 import userRoute from "./routes/userRoute";
 import path from "path";
 import tagRoutes from "./routes/tagRoutes";
+import aiRoutes from "./routes/ai.routes";
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -24,6 +25,7 @@ app.use("/api/auth", authRoutes)
 app.use('/api/events', eventRoute)
 app.use('/api/user', userRoute)
 app.use('/api/tags', tagRoutes)
+app.use("/api/ai", aiRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(errorHandler)

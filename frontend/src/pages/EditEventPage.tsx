@@ -85,15 +85,16 @@ export const EditEventPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-6 pt-24 pb-12">
-      <button
+                  <Button
+        variant="ghost"
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-500 hover:text-accent transition-colors mb-6 group"
+        className="flex items-center gap-3 text-gray-500 mb-6 hover:text-accent group transition-all duration-200 px-0 bg-transparent hover:bg-transparent border-0"
       >
-        <div className="p-2 rounded-full bg-gray-100 group-hover:bg-accent/10 transition-colors">
+        <span className="flex items-center justify-center rounded-full border border-gray-200 p-2 group-hover:bg-accent/10 group-hover:border-accent/30 transition-all duration-200">
           <ArrowLeft className="size-4" />
-        </div>
+        </span>
         <span className="font-medium">Back</span>
-      </button>
+      </Button>
 
       <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-bold">Edit Event</h2>

@@ -74,12 +74,16 @@ export const EventDetailsPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 pt-12 pb-12">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-500 mb-6 hover:text-accent"
+        className="flex items-center gap-3 text-gray-500 mb-6 hover:text-accent group transition-all duration-200 px-0 bg-transparent hover:bg-transparent border-0"
       >
-        <ArrowLeft className="size-4" /> Back my calendar
-      </button>
+        <span className="flex items-center justify-center rounded-full border border-gray-200 p-2 group-hover:bg-accent/10 group-hover:border-accent/30 transition-all duration-200">
+          <ArrowLeft className="size-4" />
+        </span>
+        <span className="font-medium">Back</span>
+      </Button>
 
       <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <h1 className="text-3xl font-bold mb-4">{event.title}</h1>

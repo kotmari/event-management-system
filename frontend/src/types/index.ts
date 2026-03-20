@@ -61,6 +61,11 @@ export interface ITag {
   id: number;
 }
 
+export interface IMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface IEventState {
   events: IEvent[];
   currentEvent: IEvent | null;
@@ -78,6 +83,14 @@ export interface IEventState {
   deleteEvent: (id: number) => Promise<void>;
   joinEvent: (id: number) => Promise<void>;
   leaveEvent: (id: number) => Promise<void>;
+}
+
+export interface AIState {
+  messages: IMessage[];
+  isLoading: boolean;
+  error: string | null;
+  askAssistant: (question: string) => Promise<void>;
+  clearChat: () => void;
 }
 
 
